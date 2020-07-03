@@ -2,6 +2,6 @@
 {
     public interface IDoubleParser
     {
-        double? Parse(string fullAddress, object? objValue);
+        double? Parse(object? objValue);
     }
 }

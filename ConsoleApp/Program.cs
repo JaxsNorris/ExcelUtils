@@ -1,4 +1,7 @@
-﻿using Exporter.Extensions;
+﻿using Analyser.Extensions;
+using ConsoleApp.Runners;
+using Exporter.Extensions;
+using Generator.Extensions;
 using Importer.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -37,10 +40,12 @@ namespace ConsoleApp
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddLogging(configure => configure.AddSerilog());
             serviceCollection.AddSingleton<App>();
+            serviceCollection.AddSingleton<GeneratorRunner>();
 
             serviceCollection.RegisterImporterDependencies();
             serviceCollection.RegisterExporterDependencies();
-
+            serviceCollection.RegisterAnalyserDependencies();
+            serviceCollection.RegisterGeneratorDependencies();
             return serviceCollection.BuildServiceProvider();
         }
     }

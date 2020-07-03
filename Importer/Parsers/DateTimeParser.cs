@@ -1,5 +1,6 @@
 ﻿using Common.Exceptions;
 using Common.Interfaces.Parsers;
+using Common.Utils;
 using System;
 using System.Globalization;
 
@@ -15,24 +16,21 @@ namespace Importer.Parsers
             _doubleParser = doubleParser;
         }
 
-        public DateTime? Parse(string address, object? objValue, string[]? formats)
+        public DateTime? Parse(object? objValue, string[]? formats)
         {
-            switch (objValue)
-            {
-                case null:
-                    return null;
-                case DateTime dateTimeValue:
-                    return dateTimeValue;
-                case double doubleValue:
-                    return ParseFromDouble(address, doubleValue);
-                case string stringValue:
-                    return ParseFromString(address, stringValue, formats);
-                default:
-                    throw ParserException.CreateUnsupportedDataTypeException(address, objValue, ExpectedType);
-            }
+            if (objValue == null)
+                return null;
+            else if (objValue is DateTime dateTimeValue)
+                return dateTimeValue;
+            else if (objValue is string stringValue)
+                return ParseFromString(stringValue, formats);
+            else if (objValue.IsNumeric())
+                return ParseFromDouble((double)objValue);
+
+            throw UnsupportedDataTypeParserException.Create(objValue, ExpectedType);
         }
 
-        private DateTime ParseFromString(string address, string stringValue, string[]? formats)
+        private DateTime ParseFromString(string stringValue, string[]? formats)
         {
             if (formats != null && formats.Length != 0
                 && DateTime.TryParseExact(stringValue, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate))
@@ -44,9 +42,9 @@ namespace Importer.Parsers
                 return parsedDate;
             }
 
-            if (TryParseDouble(address, stringValue, out var doubleValue) && doubleValue.HasValue)
+            if (TryParseDouble(stringValue, out var doubleValue) && doubleValue.HasValue)
             {
-                return ParseFromDouble(address, doubleValue.Value);
+                return ParseFromDouble(doubleValue.Value);
             }
             else
             {
@@ -55,25 +53,25 @@ namespace Importer.Parsers
                 {
                     additionalUiMessage = $"with the format(s) [{string.Join(',', formats)}]";
                 }
-                throw ParserException.CreateWithEnrichedMessage(address, stringValue, ExpectedType, additionalUiMessage, "Failed to parse string value to either DateTime or Double value");
+                throw ParserException.CreateWithEnrichedMessage(stringValue, ExpectedType, additionalUiMessage, "Failed to parse string value to either DateTime or Double value");
             }
         }
 
-        private bool TryParseDouble(string address, string stringValue, out double? doubleValue)
+        private bool TryParseDouble(string stringValue, out double? doubleOutputValue)
         {
             try
             {
-                doubleValue = _doubleParser.Parse(address, stringValue);
+                doubleOutputValue = _doubleParser.Parse(stringValue);
                 return true;
             }
             catch (ParserException)
             {
-                doubleValue = null;
+                doubleOutputValue = null;
                 return false;
             }
         }
 
-        private static DateTime ParseFromDouble(string address, double doubleValue)
+        private static DateTime ParseFromDouble(double doubleValue)
         {
             try
             {
@@ -81,7 +79,7 @@ namespace Importer.Parsers
             }
             catch (ArgumentException ex)
             {
-                throw ParserException.CreateFromException(address, doubleValue, ExpectedType, ex);
+                throw ParserException.CreateFromException(doubleValue, ExpectedType, ex);
             }
         }
     }

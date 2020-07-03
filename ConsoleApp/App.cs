@@ -1,23 +1,21 @@
-﻿using Common.Interfaces.Parsers;
-using System;
+﻿using ConsoleApp.Runners;
 using System.Threading.Tasks;
 
 namespace ConsoleApp
 {
     public class App
     {
-        private readonly IParserService _parserService;
+        private readonly GeneratorRunner _generatorRunner;
 
-        public App(IParserService parserService)
+        public App(GeneratorRunner generatorRunner)
         {
-            _parserService = parserService;
+            _generatorRunner = generatorRunner;
         }
 
-        public Task Run()
+        public async Task Run()
         {
-            var dt = _parserService.ParseDateTime("test", "2020/06/26", null);
-            Console.WriteLine(dt);
-            return Task.CompletedTask;
+            await _generatorRunner.Run();
+
         }
     }
 }

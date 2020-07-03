@@ -3,7 +3,6 @@ using Importer.Parsers;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Globalization;
-using Tests.Common;
 
 namespace ImporterTests.Parsers
 {
@@ -19,7 +18,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, null);
+            var parsedValue = parser.Parse(null);
 
             Assert.Null(parsedValue);
         }
@@ -31,7 +30,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, doubleValue);
+            var parsedValue = parser.Parse(doubleValue);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(doubleValue, parsedValue.Value);
@@ -43,12 +42,10 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, invalidTypeValue));
+            var exception = Assert.Throws<UnsupportedDataTypeParserException>(() => parser.Parse(invalidTypeValue));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
-            Assert.Null(exception.InnerException);
             Assert.NotNull(exception.UiErrorMessage);
-            Assert.IsTrue(exception.Message.Contains("Unsupported data type"));
+            Assert.IsTrue(exception.Message.Contains(invalidTypeValue.GetType().Name));
         }
 
         [TestCase(short.MinValue, short.MinValue)]
@@ -63,7 +60,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, value);
+            var parsedValue = parser.Parse(value);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(expectedValue, parsedValue.Value);
@@ -79,7 +76,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, value);
+            var parsedValue = parser.Parse(value);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(value, parsedValue.Value);
@@ -94,7 +91,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, value);
+            var parsedValue = parser.Parse(value);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(expectedValue, parsedValue.Value);
@@ -107,9 +104,8 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDoubleParser();
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, differentCultureDouble));
+            var exception = Assert.Throws<ParserException>(() => parser.Parse(differentCultureDouble));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
             Assert.NotNull(exception.InnerException);
             Assert.NotNull(exception.UiErrorMessage);
             Assert.IsTrue(exception.Message.Contains("Input string was not in a correct format"));
@@ -125,7 +121,7 @@ namespace ImporterTests.Parsers
             var parser = CreateDoubleParser();
             var culture = new CultureInfo("en-US");
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, differentCultureDouble, culture);
+            var parsedValue = parser.Parse(differentCultureDouble, culture);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(expectedValue, parsedValue.Value);
@@ -137,9 +133,8 @@ namespace ImporterTests.Parsers
             var parser = CreateDoubleParser();
             var culture = new CultureInfo("en-US");
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, "1AFF", culture));
+            var exception = Assert.Throws<ParserException>(() => parser.Parse("1AFF", culture));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
             Assert.NotNull(exception.InnerException);
             Assert.NotNull(exception.UiErrorMessage);
             Assert.IsTrue(exception.Message.Contains("Input string was not in a correct format"));

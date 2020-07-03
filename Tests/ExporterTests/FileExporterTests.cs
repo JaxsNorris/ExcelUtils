@@ -1,4 +1,4 @@
-﻿using Common;
+﻿using Common.Models;
 using Exporter;
 using NUnit.Framework;
 using System;
@@ -10,9 +10,9 @@ namespace ExporterTests
 {
     public class FileExporterTests
     {
-        private FileExporter<Movie> GetFileExporter()
+        private ExcelExporter<Movie> GetFileExporter()
         {
-            return new FileExporter<Movie>();
+            return new ExcelExporter<Movie>();
         }
 
         [Test]

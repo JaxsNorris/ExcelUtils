@@ -4,7 +4,6 @@ using Importer.Parsers;
 using Moq;
 using NUnit.Framework;
 using System;
-using Tests.Common;
 
 namespace ImporterTests.Parsers
 {
@@ -28,7 +27,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDateTimeParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, null, null);
+            var parsedValue = parser.Parse(null, null);
 
             Assert.Null(parsedValue);
         }
@@ -38,7 +37,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDateTimeParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, _expectedDate, null);
+            var parsedValue = parser.Parse(_expectedDate, null);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(_expectedDate, parsedValue.Value);
@@ -50,12 +49,10 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDateTimeParser();
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, invalidTypeValue, null));
+            var exception = Assert.Throws<UnsupportedDataTypeParserException>(() => parser.Parse(invalidTypeValue, null));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
-            Assert.Null(exception.InnerException);
             Assert.NotNull(exception.UiErrorMessage);
-            Assert.IsTrue(exception.Message.Contains("Unsupported data type"));
+            Assert.IsTrue(exception.Message.Contains(invalidTypeValue.GetType().Name));
         }
 
         #region String Value
@@ -68,7 +65,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDateTimeParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, dateString, null);
+            var parsedValue = parser.Parse(dateString, null);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(_expectedDate, parsedValue.Value);
@@ -88,7 +85,7 @@ namespace ImporterTests.Parsers
         {
             var parser = CreateDateTimeParser();
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, dateString, new string[] { dateFormat });
+            var parsedValue = parser.Parse(dateString, new string[] { dateFormat });
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(_expectedDate, parsedValue.Value);
@@ -99,16 +96,15 @@ namespace ImporterTests.Parsers
         [TestCase("Hello World", "yyyy/MM/dd")]
         public void Parse_WhenInvalidDateStringAndNotVaildDouble_ThrowNewParserException(string invalidDateString, params string[] dateFormats)
         {
-            var doubleParsingException = ParserException.CreateWithEnrichedMessage(TestConstants.DefaultFullAddress, invalidDateString, "double", null, "Invalid double");
+            var doubleParsingException = ParserException.CreateWithEnrichedMessage(invalidDateString, "double", null, "Invalid double");
             var doubleParserMock = new Mock<IDoubleParser>();
             var parser = CreateDateTimeParser(doubleParserMock);
-            doubleParserMock.Setup(mock => mock.Parse(TestConstants.DefaultFullAddress, invalidDateString))
+            doubleParserMock.Setup(mock => mock.Parse(invalidDateString))
               .Throws(doubleParsingException);
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, invalidDateString, dateFormats));
+            var exception = Assert.Throws<ParserException>(() => parser.Parse(invalidDateString, dateFormats));
 
             Assert.AreNotEqual(doubleParsingException, exception);
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
             Assert.Null(exception.InnerException);
 
             var exceptionContainsFormats = exception.Message.Contains("with the format(s)");
@@ -121,7 +117,7 @@ namespace ImporterTests.Parsers
                 Assert.IsTrue(exceptionContainsFormats);
             }
 
-            doubleParserMock.Verify(mock => mock.Parse(TestConstants.DefaultFullAddress, invalidDateString), Times.Once);
+            doubleParserMock.Verify(mock => mock.Parse(invalidDateString), Times.Once);
             doubleParserMock.VerifyNoOtherCalls();
         }
 
@@ -133,7 +129,7 @@ namespace ImporterTests.Parsers
         public void Parse_WhenCorrectOADouble_ReturnCorrectDateValue()
         {
             var parser = CreateDateTimeParser();
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, OleDateDoubleValueForExpectedDate, null);
+            var parsedValue = parser.Parse(OleDateDoubleValueForExpectedDate, null);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(_expectedDate, parsedValue.Value);
@@ -145,14 +141,14 @@ namespace ImporterTests.Parsers
             var oleStringValue = OleDateDoubleValueForExpectedDate.ToString();
             var doubleParserMock = new Mock<IDoubleParser>();
             var parser = CreateDateTimeParser(doubleParserMock);
-            doubleParserMock.Setup(mock => mock.Parse(TestConstants.DefaultFullAddress, oleStringValue))
+            doubleParserMock.Setup(mock => mock.Parse(oleStringValue))
               .Returns(OleDateDoubleValueForExpectedDate);
 
-            var parsedValue = parser.Parse(TestConstants.DefaultFullAddress, oleStringValue, null);
+            var parsedValue = parser.Parse(oleStringValue, null);
 
             Assert.NotNull(parsedValue);
             Assert.AreEqual(_expectedDate, parsedValue.Value);
-            doubleParserMock.Verify(mock => mock.Parse(TestConstants.DefaultFullAddress, oleStringValue), Times.Once);
+            doubleParserMock.Verify(mock => mock.Parse(oleStringValue), Times.Once);
             doubleParserMock.VerifyNoOtherCalls();
         }
 
@@ -163,9 +159,8 @@ namespace ImporterTests.Parsers
             var doubleParserMock = new Mock<IDoubleParser>();
             var parser = CreateDateTimeParser(doubleParserMock);
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, invalidOleDate, null));
+            var exception = Assert.Throws<ParserException>(() => parser.Parse(invalidOleDate, null));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
             Assert.NotNull(exception.InnerException);
             Assert.AreEqual("Not a legal OleAut date.", exception.InnerException.Message);
             doubleParserMock.VerifyNoOtherCalls();
@@ -177,15 +172,14 @@ namespace ImporterTests.Parsers
         {
             var doubleParserMock = new Mock<IDoubleParser>();
             var parser = CreateDateTimeParser(doubleParserMock);
-            doubleParserMock.Setup(mock => mock.Parse(TestConstants.DefaultFullAddress, invalidOleDate))
+            doubleParserMock.Setup(mock => mock.Parse(invalidOleDate))
               .Returns(returnedValue);
 
-            var exception = Assert.Throws<ParserException>(() => parser.Parse(TestConstants.DefaultFullAddress, invalidOleDate, null));
+            var exception = Assert.Throws<ParserException>(() => parser.Parse(invalidOleDate, null));
 
-            Assert.AreEqual(TestConstants.DefaultFullAddress, exception.Address);
             Assert.NotNull(exception.InnerException);
             Assert.AreEqual("Not a legal OleAut date.", exception.InnerException.Message);
-            doubleParserMock.Verify(mock => mock.Parse(TestConstants.DefaultFullAddress, invalidOleDate), Times.Once);
+            doubleParserMock.Verify(mock => mock.Parse(invalidOleDate), Times.Once);
             doubleParserMock.VerifyNoOtherCalls();
         }
         #endregion

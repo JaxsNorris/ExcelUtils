@@ -2,7 +2,7 @@
 {
     public static class ExcelHelper
     {
-        public static string GetAddress(string column, int row)
+        public static string GetAddress(int row, string column)
         {
             return $"{column}{row}";
         }

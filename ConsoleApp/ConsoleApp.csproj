@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -24,10 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Analyser\Analyser.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\Exporter\Exporter.csproj" />
+    <ProjectReference Include="..\Generator\Generator.csproj" />
     <ProjectReference Include="..\Importer\Importer.csproj" />
-    <ProjectReference Include="..\Runner\Runner.csproj" />
   </ItemGroup>
 
 </Project>

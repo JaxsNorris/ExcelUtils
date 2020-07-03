@@ -1,17 +1,17 @@
 ﻿
+using Common.Exceptions;
 using Common.Interfaces.Parsers;
+using Common.Models;
 using Importer.Parsers;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using Tests.Common;
 
 namespace ImporterTests.Parsers
 {
     public class ParserServiceTests
     {
-        private ParserService CreateParserService(IMock<IDoubleParser> doubleParserMock = null, IMock<IDateTimeParser> dateTimeParserMock = null, IMock<ILookupParser> lookupParserMock = null)
+        private ParserService CreateParserService(IMock<IDoubleParser> doubleParserMock = null, IMock<IDateTimeParser> dateTimeParserMock = null, IMock<ILookupParser> lookupParserMock = null, IMock<IBooleanParser> booleanParserMock = null)
         {
             if (doubleParserMock == null)
             {
@@ -25,8 +25,12 @@ namespace ImporterTests.Parsers
             {
                 lookupParserMock = new Mock<ILookupParser>();
             }
+            if (booleanParserMock == null)
+            {
+                booleanParserMock = new Mock<IBooleanParser>();
+            }
 
-            return new ParserService(dateTimeParserMock.Object, doubleParserMock.Object, lookupParserMock.Object);
+            return new ParserService(dateTimeParserMock.Object, doubleParserMock.Object, lookupParserMock.Object, booleanParserMock.Object);
         }
 
         [Test]
@@ -34,7 +38,7 @@ namespace ImporterTests.Parsers
         {
             var parserService = CreateParserService();
 
-            var returnValue = parserService.GetValue(TestConstants.DefaultFullAddress, null, typeof(string));
+            var returnValue = parserService.GetValue(null, typeof(string));
 
             Assert.IsNull(returnValue);
         }
@@ -47,7 +51,7 @@ namespace ImporterTests.Parsers
         {
             var parserService = CreateParserService();
 
-            var returnValue = parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, inputValue.GetType());
+            var returnValue = parserService.GetValue(inputValue, inputValue.GetType());
 
             Assert.AreEqual(inputValue, returnValue);
         }
@@ -59,14 +63,14 @@ namespace ImporterTests.Parsers
             var expectedOutputValue = 42.88;
             var doubleParserMock = new Mock<IDoubleParser>();
             var parserService = CreateParserService(doubleParserMock: doubleParserMock);
-            doubleParserMock.Setup(mock => mock.Parse(TestConstants.DefaultFullAddress, inputValue))
+            doubleParserMock.Setup(mock => mock.Parse(inputValue))
                 .Returns(expectedOutputValue);
 
-            var returnValue = parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, typeof(double));
+            var returnValue = parserService.GetValue(inputValue, typeof(double));
 
             Assert.AreEqual(expectedOutputValue, returnValue);
 
-            doubleParserMock.Verify(mock => mock.Parse(TestConstants.DefaultFullAddress, inputValue), Times.Once);
+            doubleParserMock.Verify(mock => mock.Parse(inputValue), Times.Once);
             doubleParserMock.VerifyNoOtherCalls();
         }
 
@@ -77,14 +81,14 @@ namespace ImporterTests.Parsers
             var inputValue = expectedOutputValue.ToShortDateString();
             var dateTimeParserMock = new Mock<IDateTimeParser>();
             var parserService = CreateParserService(dateTimeParserMock: dateTimeParserMock);
-            dateTimeParserMock.Setup(mock => mock.Parse(TestConstants.DefaultFullAddress, inputValue, It.IsAny<string[]>()))
+            dateTimeParserMock.Setup(mock => mock.Parse(inputValue, It.IsAny<string[]>()))
                 .Returns(expectedOutputValue);
 
-            var returnValue = parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, typeof(DateTime));
+            var returnValue = parserService.GetValue(inputValue, typeof(DateTime));
 
             Assert.AreEqual(expectedOutputValue, returnValue);
 
-            dateTimeParserMock.Verify(mock => mock.Parse(TestConstants.DefaultFullAddress, inputValue, It.IsAny<string[]>()), Times.Once);
+            dateTimeParserMock.Verify(mock => mock.Parse(inputValue, It.IsAny<string[]>()), Times.Once);
             dateTimeParserMock.VerifyNoOtherCalls();
         }
 
@@ -93,26 +97,29 @@ namespace ImporterTests.Parsers
         {
             var expectedOutputValue = false;
             var inputValue = "false";
-            var lookupParserMock = new Mock<ILookupParser>();
-            var parserService = CreateParserService(lookupParserMock: lookupParserMock);
-            lookupParserMock.Setup(mock => mock.Parse(inputValue, It.IsAny<IReadOnlyDictionary<bool, string[]>>(), null, null))
+            var booleanParserMock = new Mock<IBooleanParser>();
+            var parserService = CreateParserService(booleanParserMock: booleanParserMock);
+            booleanParserMock.Setup(mock => mock.Parse(inputValue))
                 .Returns(expectedOutputValue);
 
-            var returnValue = parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, typeof(bool));
+            var returnValue = parserService.GetValue(inputValue, typeof(bool));
 
             Assert.AreEqual(expectedOutputValue, returnValue);
 
-            lookupParserMock.Verify(mock => mock.Parse(inputValue, It.IsAny<IReadOnlyDictionary<bool, string[]>>(), null, null), Times.Once);
-            lookupParserMock.VerifyNoOtherCalls();
+            booleanParserMock.Verify(mock => mock.Parse(inputValue), Times.Once);
+            booleanParserMock.VerifyNoOtherCalls();
         }
 
         [Test]
-        public void GetValue_WhenBooleanNotStringValue_ThrowException()
+        public void GetValue_WhenBooleanParserThrowsException_ThrowException()
         {
             var inputValue = double.MaxValue;
-            var parserService = CreateParserService();
+            var booleanParserMock = new Mock<IBooleanParser>();
+            var parserService = CreateParserService(booleanParserMock: booleanParserMock);
+            booleanParserMock.Setup(mock => mock.Parse(inputValue))
+                .Throws(ParserException.CreateUnsupportedValueException(inputValue, "boolean"));
 
-            Assert.Throws<NotSupportedException>(() => parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, typeof(bool)));
+            Assert.Throws<ParserException>(() => parserService.GetValue(inputValue, typeof(bool)));
         }
 
         [Test]
@@ -121,7 +128,7 @@ namespace ImporterTests.Parsers
             var inputValue = int.MaxValue;
             var parserService = CreateParserService();
 
-            Assert.Throws<NotSupportedException>(() => parserService.GetValue(TestConstants.DefaultFullAddress, inputValue, typeof(bool)));
+            Assert.Throws<UnsupportedDataTypeParserException>(() => parserService.GetValue(inputValue, typeof(Movie)));
         }
     }
 }

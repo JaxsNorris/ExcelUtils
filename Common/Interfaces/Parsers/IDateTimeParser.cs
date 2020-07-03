@@ -4,6 +4,6 @@ namespace Common.Interfaces.Parsers
 {
     public interface IDateTimeParser
     {
-        DateTime? Parse(string fullAddress, object? objValue, string[]? formats);
+        DateTime? Parse(object? objValue, string[]? formats);
     }
 }

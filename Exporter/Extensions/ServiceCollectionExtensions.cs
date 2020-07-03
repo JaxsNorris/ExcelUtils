@@ -7,7 +7,7 @@ namespace Exporter.Extensions
     {
         public static IServiceCollection RegisterExporterDependencies(this IServiceCollection collection)
         {
-            collection.AddSingleton(typeof(IFileExporter<>), typeof(FileExporter<>));
+            collection.AddSingleton(typeof(IExporter<>), typeof(ExcelExporter<>));
             return collection;
         }
     }

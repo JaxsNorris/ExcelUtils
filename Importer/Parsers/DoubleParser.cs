@@ -9,7 +9,7 @@ namespace Importer.Parsers
     {
         private const string ExpectedType = "double";
 
-        public double? Parse(string address, object? objValue)
+        public double? Parse(object? objValue)
         {
             if (objValue == null)
             {
@@ -35,16 +35,16 @@ namespace Importer.Parsers
                     case string stringValue:
                         return Convert.ToDouble(stringValue);
                     default:
-                        throw ParserException.CreateUnsupportedDataTypeException(address, objValue, ExpectedType);
+                        throw UnsupportedDataTypeParserException.Create(objValue, ExpectedType);
                 }
             }
             catch (Exception ex) when (ex is FormatException || ex is InvalidCastException || ex is OverflowException)
             {
-                throw ParserException.CreateFromException(address, objValue, ExpectedType, ex);
+                throw ParserException.CreateFromException(objValue, ExpectedType, ex);
             }
         }
 
-        public double? Parse(string address, string stringValue, CultureInfo cultureInfo)
+        public double? Parse(string stringValue, CultureInfo cultureInfo)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace Importer.Parsers
             }
             catch (Exception ex) when (ex is FormatException || ex is InvalidCastException || ex is OverflowException)
             {
-                throw ParserException.CreateFromException(address, stringValue, ExpectedType, ex);
+                throw ParserException.CreateFromException(stringValue, ExpectedType, ex);
             }
         }
     }
