@@ -25,7 +25,7 @@ namespace AnalyserTests
         {
             var doubleParser = new DoubleParser();
             var lookupParser = new LookupParser();
-            var parserService = new ParserService(new DateTimeParser(doubleParser), doubleParser, lookupParser, new BooleanParser(lookupParser));
+            var parserService = new ParserService(new DateTimeParser(doubleParser), doubleParser, lookupParser, new BooleanParser(lookupParser), new EnumParser());
 
             if (readerFactoryMock == null)
                 readerFactoryMock = new Mock<IReaderFactory>();

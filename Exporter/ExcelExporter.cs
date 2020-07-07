@@ -54,7 +54,7 @@ namespace Exporter
         {
             foreach (var lookup in _propertyLookup)
             {
-                var address = ExcelHelper.GetAddress(1, lookup.Value.Column);
+                var address = ExcelHelper.GetAddress(1, lookup.Value.ColumnAddress);
                 var header = lookup.Value.ColumnHeader;
                 if (string.IsNullOrWhiteSpace(header))
                 {
@@ -81,7 +81,7 @@ namespace Exporter
             foreach (var lookup in _propertyLookup)
             {
                 var value = lookup.Key.GetValue(item);
-                ws.SetValue(ExcelHelper.GetAddress(rowNum, lookup.Value.Column), value);
+                ws.SetValue(ExcelHelper.GetAddress(rowNum, lookup.Value.ColumnAddress), value);
             }
         }
     }

@@ -10,19 +10,19 @@ namespace Common.Extensions
         {
             const string pattern = @"[A-Z][a-z]*|[a-z]+|\d+";
             var matches = Regex.Matches(camelCaseString, pattern);
-            return matches.Select(match => match.Value);
+            return matches.Select(match => match.Value.ToLower());
         }
 
         public static string FromCamelCase(this string camelCaseString)
         {
             var splits = camelCaseString.SplitCamelCase();
             var returnValue = string.Join(" ", splits);
-            return returnValue.ToLowerAllButFirstChar();
+            return returnValue.CapitalizedFirstLetter();
         }
 
-        public static string ToLowerAllButFirstChar(this string value)
+        public static string CapitalizedFirstLetter(this string value)
         {
-            return value.Substring(0, 1) + value.Substring(1).ToLower();
+            return value.Substring(0, 1).ToUpper() + value.Substring(1);
         }
 
         public static string GetValueOrDefault(this string? value, string defaultValue)

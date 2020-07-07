@@ -15,6 +15,7 @@ namespace Importer.Extensions
             collection.AddSingleton<IDateTimeParser, DateTimeParser>();
             collection.AddSingleton<ILookupParser, LookupParser>();
             collection.AddSingleton<IBooleanParser, BooleanParser>();
+            collection.AddSingleton<IEnumParser, EnumParser>();
             collection.AddSingleton<IParserService, ParserService>();
             collection.AddSingleton<IReaderFactory, ExcelReaderFactory>();
             return collection;

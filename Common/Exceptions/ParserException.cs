@@ -28,6 +28,7 @@ namespace Common.Exceptions
             info.AddValue(nameof(UiErrorMessage), UiErrorMessage, typeof(string));
         }
 
+
         public static ParserException CreateUnsupportedValueException(object objValue, string expectedType)
         {
             var message = GetUiErrorMessage(objValue, expectedType);
@@ -48,6 +49,12 @@ namespace Common.Exceptions
                 message = $"{message} {additionalUiMessage}";
             }
             return new ParserException(message, $"{message}. {errorMessage}", null);
+        }
+
+        public static ParserException CreateFailedLookup(string value, Type expectedType)
+        {
+            var message = $"Lookup dictionary does not contain an entry to convert {value} into {expectedType.Name}";
+            return new ParserException(message, message, null);
         }
 
         protected static string GetUiErrorMessage(object objValue, string expectedType)

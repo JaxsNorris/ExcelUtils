@@ -1,5 +1,6 @@
 ﻿using Common.Exceptions;
 using Common.Interfaces.Parsers;
+using Common.Utils;
 using System;
 using System.Collections.Generic;
 
@@ -11,13 +12,15 @@ namespace Importer.Parsers
         private readonly IDoubleParser _doubleParser;
         private readonly ILookupParser _lookupParser;
         private readonly IBooleanParser _booleanParser;
+        private readonly IEnumParser _enumParser;
 
-        public ParserService(IDateTimeParser dateTimeParser, IDoubleParser doubleParser, ILookupParser lookupParser, IBooleanParser booleanParser)
+        public ParserService(IDateTimeParser dateTimeParser, IDoubleParser doubleParser, ILookupParser lookupParser, IBooleanParser booleanParser, IEnumParser enumParser)
         {
             _dateTimeParser = dateTimeParser;
             _doubleParser = doubleParser;
             _lookupParser = lookupParser;
             _booleanParser = booleanParser;
+            _enumParser = enumParser;
         }
 
         public DateTime? ParseDateTime(object? objValue, string[]? formats)
@@ -49,7 +52,7 @@ namespace Importer.Parsers
             {
                 return inputValue.ToString();
             }
-            else if (expectedType == typeof(double) || expectedType == typeof(double?))
+            else if (expectedType.IsNumeric())
             {
                 return ParseDouble(inputValue);
             }
@@ -64,6 +67,10 @@ namespace Importer.Parsers
                     return inputValue;
                 }
                 return ParseBoolean(inputValue);
+            }
+            else if (expectedType.IsEnum)
+            {
+                return _enumParser.Parse(inputValue, expectedType);
             }
             throw UnsupportedDataTypeParserException.Create(inputValue, expectedType.Name);
         }
